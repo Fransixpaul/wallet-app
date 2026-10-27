@@ -1,3 +1,4 @@
+const pool = require('./db');
 const express = require('express');
 const app = express();
 const PORT = 3000;
@@ -12,6 +13,11 @@ app.get('/wallet/balance', (req, res) => {
     balance: 40000,
     currency: 'NGN',
   });
+});
+
+app.get('/clients', async (req, res) => {
+  const [rows] = await pool.query('SELECT * FROM clients');
+  res.status(200).json(rows);
 });
 
 app.listen(PORT, () => {
