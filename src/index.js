@@ -44,7 +44,6 @@ app.post('/clients', async (req, res) => {
       [name, email],
     );
     res.status(201).json({
-      message: 'Client created successfully',
       id: result.insertId,
       name,
       email,
@@ -57,6 +56,41 @@ app.post('/clients', async (req, res) => {
         .json({ error: 'A client with this email already exists' });
     }
     return res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+app.put('/clients/:id', async (req, res) => {
+  const id = req.params.id;
+  const { name, email } = req.body;
+
+  if (!name || !email || !id) {
+    return res
+      .status(400)
+      .json({ error: 'Id, Name and email adress are required' });
+  }
+
+  try {
+    const [result] = await pool.query(
+      'UPDATE clients SET name = ?, email = ? WHERE id = ?',
+      [name, email, id],
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+    return res.status(200).json({
+      id: Number(id),
+      name,
+      email,
+    });
+  } catch (error) {
+    console.error(error);
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res
+        .status(409)
+        .json({ error: 'A client with this email already exists' });
+    }
+    return res.status(500).json({ error: 'something went wrong' });
   }
 });
 
