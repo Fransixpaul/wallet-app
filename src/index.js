@@ -94,6 +94,23 @@ app.put('/clients/:id', async (req, res) => {
     return res.status(500).json({ error: 'Something went wrong' });
   }
 });
+
+// Deletes Client's information.
+app.delete('/clients/:id', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const [result] = await pool.query('DELETE FROM clients WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+    return res.status(204).send();
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Starts the Express API server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
