@@ -7,7 +7,7 @@ const PORT = 3000;
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
-
+// Retrieves the wallet balance for a client.
 app.get('/wallet/balance', (req, res) => {
   res.status(200).json({
     clientId: 1,
@@ -20,7 +20,7 @@ app.get('/clients', async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM clients');
   res.status(200).json(rows);
 });
-
+// Retrieves all registered clients from the database
 app.get('/clients/:id', async (req, res) => {
   const id = req.params.id;
 
@@ -30,10 +30,11 @@ app.get('/clients/:id', async (req, res) => {
   }
   res.status(200).json(rows[0]);
 });
-
+// creates a new client in the database.
 app.post('/clients', async (req, res) => {
   const { name, email } = req.body;
 
+  // Validate required client information
   if (!name || !email) {
     return res.status(400).json({ error: 'Name and email are required' });
   }
@@ -50,6 +51,7 @@ app.post('/clients', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    // Handles duplicat email addresses
     if (error.code === 'ER_DUP_ENTRY') {
       return res
         .status(409)
@@ -58,15 +60,13 @@ app.post('/clients', async (req, res) => {
     return res.status(500).json({ error: 'Something went wrong' });
   }
 });
-
+// Updates an exixting client's information
 app.put('/clients/:id', async (req, res) => {
   const id = req.params.id;
   const { name, email } = req.body;
 
-  if (!name || !email || !id) {
-    return res
-      .status(400)
-      .json({ error: 'Id, Name and email adress are required' });
+  if (!name || !email) {
+    return res.status(400).json({ error: 'Name and email are required' });
   }
 
   try {
@@ -74,7 +74,7 @@ app.put('/clients/:id', async (req, res) => {
       'UPDATE clients SET name = ?, email = ? WHERE id = ?',
       [name, email, id],
     );
-
+    // Check whether the requested client exists.
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: 'Client not found' });
     }
@@ -85,15 +85,16 @@ app.put('/clients/:id', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    // Handle duplicate email addresses.
     if (error.code === 'ER_DUP_ENTRY') {
       return res
         .status(409)
         .json({ error: 'A client with this email already exists' });
     }
-    return res.status(500).json({ error: 'something went wrong' });
+    return res.status(500).json({ error: 'Something went wrong' });
   }
 });
-
+// Starts the Express API server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
